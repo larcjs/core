@@ -247,16 +247,16 @@ bus.subscribe<UserPayload>('user.login', (msg) => {
 
 ## Related Packages
 
-- **[@larcjs/components](https://github.com/larcjs/larc-components)** — UI components built on LARC Core
-- **[@larcjs/devtools](https://github.com/larcjs/larc-devtools)** — Chrome DevTools for debugging PAN messages
-- **[@larcjs/examples](https://github.com/larcjs/larc-examples)** — Demo applications and examples
+- **[@larcjs/components](https://github.com/larcjs/components)** — UI components built on LARC Core
+- **[@larcjs/devtools](https://github.com/larcjs/devtools)** — Chrome DevTools for debugging PAN messages
+- **[@larcjs/examples](https://github.com/larcjs/examples)** — Demo applications and examples
 
 ## Documentation
 
 - [API Reference](docs/API_REFERENCE.md)
 - [LARC Specification](docs/LARC_SPEC.v0.md)
 - [Roadmap](docs/LARC_ROADMAP.md)
-- [Full Documentation](https://larcjs.github.io/larc-site/)
+- [Full Documentation](https://larcjs.github.io/site/)
 
 ## Browser Support
 
@@ -282,6 +282,6 @@ MIT © Chris Robison
 
 ## Support
 
-- 📖 [Documentation](https://larcjs.github.io/larc-site/)
-- 💬 [Discussions](https://github.com/larcjs/larc-core/discussions)
-- 🐛 [Issue Tracker](https://github.com/larcjs/larc-core/issues)
+- 📖 [Documentation](https://larcjs.github.io/site/)
+- 💬 [Discussions](https://github.com/larcjs/core/discussions)
+- 🐛 [Issue Tracker](https://github.com/larcjs/core/issues)

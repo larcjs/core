@@ -50,12 +50,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/larcjs/larc-core.git"
+    "url": "https://github.com/larcjs/core.git"
   },
   "bugs": {
-    "url": "https://github.com/larcjs/larc-core/issues"
+    "url": "https://github.com/larcjs/core/issues"
   },
-  "homepage": "https://github.com/larcjs/larc-core#readme",
+  "homepage": "https://github.com/larcjs/core#readme",
   "devDependencies": {
     "esbuild": "^0.25.11"
   }
