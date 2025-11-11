@@ -1,0 +1,62 @@
+{
+  "name": "@larcjs/core",
+  "version": "1.0.0",
+  "description": "LARC Core - Lightweight Asynchronous Relay Core: The PAN (Page Area Network) messaging bus implementation",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/pan.mjs",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/pan.mjs",
+      "default": "./src/index.js"
+    },
+    "./pan": {
+      "import": "./src/pan.mjs",
+      "default": "./src/pan.js"
+    },
+    "./components/pan-bus": {
+      "types": "./src/components/pan-bus.d.ts",
+      "import": "./src/components/pan-bus.mjs"
+    },
+    "./components/pan-client": {
+      "types": "./src/components/pan-client.d.ts",
+      "import": "./src/components/pan-client.mjs"
+    }
+  },
+  "files": [
+    "src/**/*",
+    "dist/**/*",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "echo \"Tests coming soon\" && exit 0"
+  },
+  "keywords": [
+    "pan",
+    "larc",
+    "message-bus",
+    "web-components",
+    "event-bus",
+    "pubsub",
+    "messaging",
+    "microservices",
+    "microfrontends"
+  ],
+  "author": "Chris Robison",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/larcjs/larc-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/larcjs/larc-core/issues"
+  },
+  "homepage": "https://github.com/larcjs/larc-core#readme",
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  }
+}
