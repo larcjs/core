@@ -137,6 +137,27 @@ const io = hasIO
  * // Returns: 'https://example.com/components/my-widget.mjs'
  */
 function moduleFromTag(tag) {
+  // Check if there's a custom component resolver (from larc-config.mjs)
+  if (config.resolveComponent && typeof config.resolveComponent === 'function') {
+    try {
+      const resolved = config.resolveComponent(tag);
+      if (resolved) return resolved;
+    } catch (err) {
+      console.warn(`[pan-autoload] Custom resolver failed for ${tag}:`, err);
+    }
+  }
+
+  // Check if there's a componentPaths mapping (from larc-config.mjs)
+  if (config.componentPaths && config.componentPaths[tag]) {
+    const mapped = config.componentPaths[tag];
+    // Resolve aliases if paths utility is available
+    if (config.paths && typeof config.paths.resolve === 'function') {
+      return config.paths.resolve(mapped);
+    }
+    return mapped;
+  }
+
+  // Default: construct from tag name
   try {
     return new URL(`${tag}${config.extension}`, baseHref).href;
   } catch (_) {
