@@ -5,10 +5,8 @@
   "type": "module",
   "main": "./src/index.js",
   "module": "./src/pan.mjs",
-  "types": "./src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
       "import": "./src/pan.mjs",
       "default": "./src/index.js"
     },
@@ -16,12 +14,19 @@
       "import": "./src/pan.mjs",
       "default": "./src/pan.js"
     },
+    "./pan.mjs": {
+      "import": "./src/pan.mjs"
+    },
     "./components/pan-bus": {
-      "types": "./src/components/pan-bus.d.ts",
+      "import": "./src/components/pan-bus.mjs"
+    },
+    "./components/pan-bus.mjs": {
       "import": "./src/components/pan-bus.mjs"
     },
     "./components/pan-client": {
-      "types": "./src/components/pan-client.d.ts",
+      "import": "./src/components/pan-client.mjs"
+    },
+    "./components/pan-client.mjs": {
       "import": "./src/components/pan-client.mjs"
     }
   },

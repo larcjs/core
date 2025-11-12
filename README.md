@@ -205,22 +205,39 @@ bus.setMirrorFilter((topic) => {
 
 ## TypeScript Support
 
-Full TypeScript definitions are included:
+LARC Core is written in pure JavaScript with **zero build requirements**. TypeScript support is available via the optional **[@larcjs/core-types](https://github.com/larcjs/core-types)** package:
+
+```bash
+npm install @larcjs/core
+npm install -D @larcjs/core-types
+```
+
+Full type definitions for all APIs:
 
 ```typescript
-import type { PanMessage, PanBus } from '@larcjs/core';
+import { PanClient } from '@larcjs/core/pan-client.mjs';
+import type { PanMessage, SubscribeOptions } from '@larcjs/core-types';
 
-interface UserPayload {
+interface UserData {
   id: number;
   name: string;
 }
 
-const bus = new PanBus();
+const client = new PanClient();
 
-bus.subscribe<UserPayload>('user.login', (msg) => {
-  console.log(msg.payload.name); // Type-safe!
+// Fully typed publish
+client.publish<UserData>({
+  topic: 'user.updated',
+  data: { id: 123, name: 'Alice' }
+});
+
+// Fully typed subscribe
+client.subscribe<UserData>('user.updated', (msg: PanMessage<UserData>) => {
+  console.log(msg.data.name); // TypeScript knows this is a string!
 });
 ```
+
+**Why separate types?** We keep runtime code lean (zero dependencies) and let TypeScript users opt-in to types. Best of both worlds!
 
 ## Architecture
 
@@ -247,6 +264,7 @@ bus.subscribe<UserPayload>('user.login', (msg) => {
 
 ## Related Packages
 
+- **[@larcjs/core-types](https://github.com/larcjs/core-types)** — TypeScript type definitions (opt-in)
 - **[@larcjs/components](https://github.com/larcjs/components)** — UI components built on LARC Core
 - **[@larcjs/devtools](https://github.com/larcjs/devtools)** — Chrome DevTools for debugging PAN messages
 - **[@larcjs/examples](https://github.com/larcjs/examples)** — Demo applications and examples
