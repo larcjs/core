@@ -552,7 +552,11 @@ class PanBusEnhanced extends HTMLElement {
         return false;
       }
 
-      target.dispatchEvent(new CustomEvent('pan:deliver', { detail: msg }));
+      target.dispatchEvent(new CustomEvent('pan:deliver', {
+        detail: msg,
+        bubbles: true,
+        composed: true
+      }));
       return true;
     } catch (err) {
       this._error('Delivery failed', { topic: msg.topic, error: err.message });
