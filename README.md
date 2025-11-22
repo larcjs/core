@@ -12,11 +12,37 @@ LARC Core provides the foundational messaging infrastructure for building loosel
 
 - 🚀 **Zero build required** — Drop-in `<pan-bus>` element, communicate via CustomEvents
 - 🔌 **Loose coupling** — Components depend on topic contracts, not imports
-- 🌐 **Universal** — Works with vanilla JS, Web Components, React, Lit, Vue, iframes
+- 🌐 **Framework friendly** — Works *with* React, Vue, Angular - not as a replacement
 - 📬 **Rich messaging** — Pub/sub, request/reply, retained messages, cross-tab mirroring
-- 🎯 **Lightweight** — ~12KB minified, no dependencies
+- 🎯 **Lightweight** — ~5KB minified, no dependencies (vs 400-750KB for typical React stack)
 - ⚡ **Performance** — 300k+ messages/second, zero memory leaks
 - 🔒 **Security** — Built-in message validation and sanitization
+
+## Why PAN Messaging?
+
+**The Web Component "silo problem" solved.**
+
+Web Components give you encapsulation, but they're useless if they can't communicate. Without PAN, every component needs custom glue code:
+
+```javascript
+// Without PAN - tightly coupled nightmare ❌
+const search = document.querySelector('search-box');
+const results = document.querySelector('results-list');
+search.addEventListener('change', (e) => {
+  results.updateQuery(e.detail.query);  // Tight coupling!
+});
+```
+
+**With PAN - loosely coupled, reusable** ✅
+
+```javascript
+// Components just work together via topics
+// No custom integration code needed!
+<search-box></search-box>     <!-- publishes "search:query" -->
+<results-list></results-list> <!-- subscribes to "search:query" -->
+```
+
+This is why Web Components haven't replaced frameworks - **they lacked coordination**. PAN fixes that.
 
 ## Quick Start
 
@@ -262,10 +288,66 @@ client.subscribe<UserData>('user.updated', (msg: PanMessage<UserData>) => {
 └─────────────┘ └────────┘ └─────────────┘
 ```
 
+## Use With Your Framework
+
+**PAN complements React/Vue/Angular - it doesn't replace them.**
+
+### React Example
+
+```jsx
+import { usePanSubscribe, usePanPublish } from '@larcjs/react-adapter';
+
+function Dashboard() {
+  const theme = usePanSubscribe('theme:current');
+  const { publish } = usePanPublish();
+
+  return (
+    <div>
+      {/* React component */}
+      <button onClick={() => publish('theme:toggle')}>
+        Toggle Theme
+      </button>
+
+      {/* LARC components respond automatically */}
+      <pan-card theme={theme}>
+        <pan-data-table resource="users"></pan-data-table>
+      </pan-card>
+    </div>
+  );
+}
+```
+
+### Vue Example
+
+```vue
+<script setup>
+import { usePanSubscribe, usePanPublish } from '@larcjs/vue-adapter';
+
+const theme = usePanSubscribe('theme:current');
+const { publish } = usePanPublish();
+</script>
+
+<template>
+  <div>
+    <!-- Vue component -->
+    <button @click="publish('theme:toggle')">Toggle Theme</button>
+
+    <!-- LARC components respond automatically -->
+    <pan-card :theme="theme">
+      <pan-data-table resource="users"></pan-data-table>
+    </pan-card>
+  </div>
+</template>
+```
+
+**Keep your framework for complex UIs. Use LARC for cards, modals, tables, navigation - reduce bundle size by 60%+.**
+
 ## Related Packages
 
 - **[@larcjs/core-types](https://github.com/larcjs/core-types)** — TypeScript type definitions (opt-in)
 - **[@larcjs/components](https://github.com/larcjs/components)** — UI components built on LARC Core
+- **[@larcjs/react-adapter](https://github.com/larcjs/react-adapter)** — React hooks for PAN messaging
+- **[@larcjs/vue-adapter](https://github.com/larcjs/vue-adapter)** — Vue composables for PAN messaging
 - **[@larcjs/devtools](https://github.com/larcjs/devtools)** — Chrome DevTools for debugging PAN messages
 - **[@larcjs/examples](https://github.com/larcjs/examples)** — Demo applications and examples
 
