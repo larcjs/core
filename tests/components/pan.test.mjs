@@ -128,8 +128,23 @@ describe('PAN Autoloader', () => {
           // Import autoloader which will define pan-bus
           await import('../../src/pan.mjs');
 
-          // Wait for pan-bus to be defined
+          // Wait for pan-bus element to exist in DOM (created by ensurePanBus)
+          await new Promise(resolve => {
+            const checkBus = () => {
+              if (document.querySelector('pan-bus')) {
+                resolve();
+              } else {
+                setTimeout(checkBus, 10);
+              }
+            };
+            checkBus();
+          });
+
+          // Wait for pan-bus to be fully defined
           await customElements.whenDefined('pan-bus');
+
+          // Give it a moment to fully register
+          await new Promise(r => setTimeout(r, 50));
 
           // Create test elements
           const defined = document.createElement('div');
@@ -201,8 +216,23 @@ describe('PAN Autoloader', () => {
         const result = await testPage.evaluate(async () => {
           const { panAutoload } = await import('../../src/pan.mjs');
 
+          // Wait for pan-bus element to exist in DOM
+          await new Promise(resolve => {
+            const checkBus = () => {
+              if (document.querySelector('pan-bus')) {
+                resolve();
+              } else {
+                setTimeout(checkBus, 10);
+              }
+            };
+            checkBus();
+          });
+
           // Wait for pan-bus to be automatically loaded
           await customElements.whenDefined('pan-bus');
+
+          // Give it a moment to fully register
+          await new Promise(r => setTimeout(r, 50));
 
           // Create pan-bus element
           const bus = document.createElement('pan-bus');
@@ -301,8 +331,23 @@ describe('PAN Autoloader', () => {
         const result = await testPage.evaluate(async () => {
           const { panAutoload } = await import('../../src/pan.mjs');
 
+          // Wait for pan-bus element to exist in DOM
+          await new Promise(resolve => {
+            const checkBus = () => {
+              if (document.querySelector('pan-bus')) {
+                resolve();
+              } else {
+                setTimeout(checkBus, 10);
+              }
+            };
+            checkBus();
+          });
+
           // Wait for pan-bus to be loaded
           await customElements.whenDefined('pan-bus');
+
+          // Give it a moment to fully register
+          await new Promise(r => setTimeout(r, 50));
 
           const el1 = document.createElement('pan-bus');
           const el2 = document.createElement('pan-bus');
