@@ -331,6 +331,335 @@ export namespace Topics {
 }
 
 /**
+ * PAN Routing - Runtime-configurable message routing
+ */
+export namespace Routing {
+  /**
+   * Predicate for matching message fields
+   */
+  export type Predicate =
+    | { op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte'; path: string; value: any }
+    | { op: 'in'; path: string; value: any[] }
+    | { op: 'regex'; path: string; value: string }
+    | { op: 'and' | 'or'; children: Predicate[] }
+    | { op: 'not'; child: Predicate };
+
+  /**
+   * Route matching criteria
+   */
+  export interface RouteMatch {
+    /** Match message type (exact or list) */
+    type?: string | string[];
+
+    /** Match topic (exact or list) */
+    topic?: string | string[];
+
+    /** Match source (exact or list) */
+    source?: string | string[];
+
+    /** Match any of these tags */
+    tagsAny?: string[];
+
+    /** Match all of these tags */
+    tagsAll?: string[];
+
+    /** Custom predicate for matching */
+    where?: Predicate;
+  }
+
+  /**
+   * Message transform operations
+   */
+  export type Transform =
+    | { op: 'identity' }
+    | { op: 'pick'; paths: string[] }
+    | { op: 'map'; path: string; fnId: string }
+    | { op: 'custom'; fnId: string };
+
+  /**
+   * Route action types
+   */
+  export type Action =
+    | {
+        type: 'EMIT';
+        message: Partial<PanMessage> & { type: string };
+        inherit?: ('payload' | 'meta')[];
+      }
+    | {
+        type: 'FORWARD';
+        topic?: string;
+        typeOverride?: string;
+      }
+    | {
+        type: 'LOG';
+        level?: 'debug' | 'info' | 'warn' | 'error';
+        template?: string;
+      }
+    | {
+        type: 'CALL';
+        handlerId: string;
+      };
+
+  /**
+   * Route definition
+   */
+  export interface Route {
+    /** Unique route identifier */
+    id: string;
+
+    /** Human-readable route name */
+    name?: string;
+
+    /** Whether route is active */
+    enabled: boolean;
+
+    /** Execution order (lower = earlier) */
+    order?: number;
+
+    /** Matching criteria */
+    match: RouteMatch;
+
+    /** Optional transform to apply */
+    transform?: Transform;
+
+    /** Actions to execute */
+    actions: Action[];
+
+    /** Route metadata */
+    meta?: {
+      createdBy?: string;
+      createdAt?: number;
+      updatedAt?: number;
+      tags?: string[];
+    };
+  }
+
+  /**
+   * Route input (for creating routes)
+   */
+  export type RouteInput = Omit<Route, 'id' | 'meta'> & {
+    id?: string;
+    meta?: Partial<Route['meta']>;
+  };
+
+  /**
+   * Filter for listing routes
+   */
+  export interface RouteFilter {
+    enabled?: boolean;
+  }
+
+  /**
+   * Routing statistics
+   */
+  export interface RouteStats {
+    routesEvaluated: number;
+    routesMatched: number;
+    actionsExecuted: number;
+    errors: number;
+    routeCount: number;
+    enabledRouteCount: number;
+    transformFnCount: number;
+    handlerCount: number;
+  }
+
+  /**
+   * Storage adapter interface for route persistence
+   */
+  export interface StorageAdapter {
+    load(): Promise<RouteInput[]>;
+    save(routes: Route[]): Promise<void>;
+  }
+
+  /**
+   * Routing error event
+   */
+  export interface RoutingError {
+    code: string;
+    message: string;
+    details: Record<string, any>;
+    timestamp: number;
+  }
+
+  /**
+   * PAN Routes Manager API
+   */
+  export interface RoutesManager {
+    /** Add a new route */
+    add(route: RouteInput): Route;
+
+    /** Update existing route */
+    update(id: string, patch: Partial<Route>): Route;
+
+    /** Remove a route */
+    remove(id: string): boolean;
+
+    /** Enable a route */
+    enable(id: string): void;
+
+    /** Disable a route */
+    disable(id: string): void;
+
+    /** Get route by ID */
+    get(id: string): Route | undefined;
+
+    /** List routes with optional filter */
+    list(filter?: RouteFilter): Route[];
+
+    /** Clear all routes */
+    clear(): void;
+
+    /** Register transform function */
+    registerTransformFn(fnId: string, fn: (msg: PanMessage) => PanMessage): void;
+
+    /** Register handler function */
+    registerHandler(handlerId: string, fn: (msg: PanMessage) => void): void;
+
+    /** Use storage provider */
+    useStorage(storage: StorageAdapter): void;
+
+    /** Set logger for LOG actions */
+    useLogger(logger: Console): void;
+
+    /** Set control guard for security */
+    setControlGuard(guard: (msg: PanMessage) => boolean): void;
+
+    /** Subscribe to route changes */
+    onRoutesChanged(listener: (routes: Route[]) => void): () => void;
+
+    /** Subscribe to routing errors */
+    onError(listener: (error: RoutingError) => void): () => void;
+
+    /** Process message through routing */
+    processMessage(message: PanMessage): Route[];
+
+    /** Handle control message */
+    handleControlMessage(message: PanMessage): any;
+
+    /** Get statistics */
+    getStats(): RouteStats;
+
+    /** Reset statistics */
+    resetStats(): void;
+
+    /** Enable/disable routing */
+    setEnabled(enabled: boolean): void;
+  }
+}
+
+/**
+ * PAN Debug - Message tracing and introspection
+ */
+export namespace Debug {
+  /**
+   * Trace entry for a message
+   */
+  export interface TraceEntry {
+    message: PanMessage;
+    matchedRoutes: {
+      id: string;
+      name?: string;
+      actions: string[];
+      error: { message: string; stack?: string } | null;
+    }[];
+    ts: number;
+    sequence: number;
+  }
+
+  /**
+   * Tracing options
+   */
+  export interface TracingOptions {
+    /** Maximum trace buffer size */
+    maxBuffer?: number;
+
+    /** Sample rate (0-1) */
+    sampleRate?: number;
+  }
+
+  /**
+   * Trace query filter
+   */
+  export interface TraceFilter {
+    topic?: string;
+    type?: string;
+    hasRoutes?: boolean;
+    hasErrors?: boolean;
+    startTs?: number;
+    endTs?: number;
+    limit?: number;
+  }
+
+  /**
+   * Debug statistics
+   */
+  export interface DebugStats {
+    enabled: boolean;
+    messageCount: number;
+    bufferSize: number;
+    maxBuffer: number;
+    sampleRate: number;
+    oldestMessage?: number;
+    newestMessage?: number;
+    timespan?: number;
+  }
+
+  /**
+   * PAN Debug Manager API
+   */
+  export interface DebugManager {
+    /** Enable tracing */
+    enableTracing(options?: TracingOptions): void;
+
+    /** Disable tracing */
+    disableTracing(): void;
+
+    /** Record message trace */
+    trace(message: PanMessage, matchedRoutes?: Routing.Route[]): void;
+
+    /** Record routing error */
+    traceError(message: PanMessage, route: Routing.Route, error: Error): void;
+
+    /** Get trace buffer */
+    getTrace(): TraceEntry[];
+
+    /** Clear trace buffer */
+    clearTrace(): void;
+
+    /** Get trace statistics */
+    getStats(): DebugStats;
+
+    /** Query trace buffer */
+    query(filter?: TraceFilter): TraceEntry[];
+
+    /** Export trace as JSON */
+    export(): string;
+
+    /** Import trace from JSON */
+    import(json: string): void;
+  }
+}
+
+/**
+ * Global PAN API
+ */
+declare global {
+  interface Window {
+    /** Global PAN API namespace */
+    pan?: {
+      /** Routes manager (when routing enabled) */
+      routes?: Routing.RoutesManager | null;
+
+      /** Debug manager */
+      debug?: Debug.DebugManager | null;
+
+      /** Bus element reference */
+      bus?: HTMLElement | null;
+    };
+  }
+}
+
+/**
  * Component base types
  */
 export namespace Components {

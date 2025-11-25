@@ -1,13 +1,15 @@
 /**
- * @fileoverview PAN Bus (Enhanced) - Central message bus with memory management and security
+ * @fileoverview PAN Bus (Enhanced) - Central message bus with routing, memory management and security
  *
  * Enhanced features:
+ * - Runtime-configurable message routing with declarative rules
  * - Memory-bounded retained message store with LRU eviction
  * - Automatic cleanup of dead subscriptions
  * - Message validation (size limits, JSON-serializable)
  * - Rate limiting per publisher
  * - Security policies for wildcard subscriptions
  * - Debug mode with comprehensive logging
+ * - Message tracing and introspection
  *
  * @example
  * // Basic usage (same API as original)
@@ -18,9 +20,13 @@
  *   max-retained="1000"
  *   max-message-size="1048576"
  *   debug="true"
- *   allow-global-wildcard="false">
+ *   allow-global-wildcard="false"
+ *   enable-routing="true">
  * </pan-bus>
  */
+
+import { PanRoutesManager } from './pan-routes.mjs';
+import { PanDebugManager, captureSnapshot } from './pan-debug.mjs';
 
 /**
  * Default configuration values
@@ -33,7 +39,9 @@ const DEFAULTS = {
   rateLimit: 1000,             // Max messages per client per second
   rateLimitWindow: 1000,       // Rate limit window (ms)
   allowGlobalWildcard: true,   // Allow '*' subscriptions
-  debug: false                 // Debug logging
+  debug: false,                // Debug logging
+  enableRouting: false,        // Enable routing system
+  enableTracing: false         // Enable message tracing
 };
 
 /**
@@ -85,7 +93,9 @@ class PanBusEnhanced extends HTMLElement {
       'cleanup-interval',
       'rate-limit',
       'allow-global-wildcard',
-      'debug'
+      'debug',
+      'enable-routing',
+      'enable-tracing'
     ];
   }
 
@@ -118,6 +128,10 @@ class PanBusEnhanced extends HTMLElement {
 
     // Cleanup timer
     this.cleanupTimer = null;
+
+    // Routing system
+    this.routingManager = null;
+    this.debugManager = null;
   }
 
   /**
@@ -151,6 +165,20 @@ class PanBusEnhanced extends HTMLElement {
       case 'debug':
         this.config.debug = newValue === 'true';
         break;
+      case 'enable-routing':
+        this.config.enableRouting = newValue === 'true';
+        if (this.config.enableRouting && !this.routingManager) {
+          this._initRouting();
+        }
+        break;
+      case 'enable-tracing':
+        this.config.enableTracing = newValue === 'true';
+        if (this.config.enableTracing && this.debugManager) {
+          this.debugManager.enableTracing();
+        } else if (!this.config.enableTracing && this.debugManager) {
+          this.debugManager.disableTracing();
+        }
+        break;
     }
   }
 
@@ -167,6 +195,20 @@ class PanBusEnhanced extends HTMLElement {
     document.addEventListener('pan:sys.stats', this.onGetStats, true);
     document.addEventListener('pan:sys.clear-retained', this.onClearRetained, true);
 
+    // Routing control messages
+    document.addEventListener('pan:control', this.onControlMessage, true);
+
+    // Initialize routing if enabled
+    if (this.config.enableRouting) {
+      this._initRouting();
+    }
+
+    // Initialize debug manager
+    this.debugManager = new PanDebugManager();
+    if (this.config.enableTracing) {
+      this.debugManager.enableTracing();
+    }
+
     // Set up periodic cleanup
     this._setupCleanup();
 
@@ -177,9 +219,22 @@ class PanBusEnhanced extends HTMLElement {
       new CustomEvent('pan:sys.ready', {
         bubbles: true,
         composed: true,
-        detail: { enhanced: true, config: this.config }
+        detail: {
+          enhanced: true,
+          routing: this.config.enableRouting,
+          tracing: this.config.enableTracing,
+          config: this.config
+        }
       })
     );
+
+    // Expose global API
+    if (typeof window !== 'undefined') {
+      window.pan = window.pan || {};
+      window.pan.routes = this.routingManager || null;
+      window.pan.debug = this.debugManager || null;
+      window.pan.bus = this;
+    }
   }
 
   disconnectedCallback() {
@@ -192,11 +247,19 @@ class PanBusEnhanced extends HTMLElement {
     document.removeEventListener('pan:hello', this.onHello, true);
     document.removeEventListener('pan:sys.stats', this.onGetStats, true);
     document.removeEventListener('pan:sys.clear-retained', this.onClearRetained, true);
+    document.removeEventListener('pan:control', this.onControlMessage, true);
 
     // Stop cleanup timer
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
       this.cleanupTimer = null;
+    }
+
+    // Clean up global API
+    if (typeof window !== 'undefined' && window.pan) {
+      delete window.pan.routes;
+      delete window.pan.debug;
+      delete window.pan.bus;
     }
   }
 
@@ -459,6 +522,21 @@ class PanBusEnhanced extends HTMLElement {
       this._storeRetained(msg.topic, msg);
     }
 
+    // Process through routing system
+    let matchedRoutes = [];
+    if (this.routingManager) {
+      try {
+        matchedRoutes = this.routingManager.processMessage(msg) || [];
+      } catch (err) {
+        this._error('Routing failed', err);
+      }
+    }
+
+    // Trace message
+    if (this.debugManager) {
+      this.debugManager.trace(msg, matchedRoutes);
+    }
+
     // Deliver to matching subscribers
     let delivered = 0;
     for (const s of this.subs) {
@@ -470,7 +548,7 @@ class PanBusEnhanced extends HTMLElement {
     }
 
     this.stats.delivered += delivered;
-    this._log('Published', { topic: msg.topic, retain: msg.retain, delivered });
+    this._log('Published', { topic: msg.topic, retain: msg.retain, delivered, routes: matchedRoutes.length });
   };
 
   onReply = (e) => {
@@ -592,6 +670,71 @@ class PanBusEnhanced extends HTMLElement {
       })
     );
   }
+
+  /**
+   * Initialize routing system
+   * @private
+   */
+  _initRouting() {
+    if (this.routingManager) return;
+
+    this.routingManager = new PanRoutesManager(this);
+    this._log('Routing system initialized');
+
+    // Listen for routing errors
+    this.routingManager.onError((error) => {
+      this._error('Routing error', error);
+      document.dispatchEvent(
+        new CustomEvent('pan:routes.error', {
+          bubbles: true,
+          composed: true,
+          detail: error
+        })
+      );
+    });
+  }
+
+  /**
+   * Handle control messages for routing configuration
+   * @private
+   */
+  onControlMessage = (e) => {
+    const message = e.detail || {};
+    const { type } = message;
+
+    // Route control messages to routing system
+    if (type && type.startsWith('pan.routes.')) {
+      if (!this.routingManager) {
+        this._error('Routing not enabled', { type });
+        return;
+      }
+
+      try {
+        const result = this.routingManager.handleControlMessage(message);
+
+        // Reply with result if needed
+        if (type === 'pan.routes.list' && message.payload?.requestId) {
+          const el = this._et(e);
+          el.dispatchEvent(
+            new CustomEvent('pan:deliver', {
+              detail: {
+                topic: '__pan.control',
+                type: 'pan.routes.list.result',
+                data: {
+                  requestId: message.payload.requestId,
+                  routes: result
+                },
+                id: crypto.randomUUID(),
+                ts: Date.now()
+              }
+            })
+          );
+        }
+      } catch (err) {
+        this._error('Control message failed', { type, error: err.message });
+      }
+    }
+  };
 
   /**
    * Get event target
