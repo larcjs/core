@@ -3,6 +3,8 @@
 [![Version](https://img.shields.io/npm/v/@larcjs/core.svg)](https://www.npmjs.com/package/@larcjs/core)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](CHANGELOG.md)
+[![Tests](https://github.com/larcjs/core/actions/workflows/test.yml/badge.svg)](https://github.com/larcjs/core/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/larcjs/core/branch/main/graph/badge.svg)](https://codecov.io/gh/larcjs/core)
 
 > **Lightweight Asynchronous Relay Core** — The PAN (Page Area Network) messaging bus implementation
 
