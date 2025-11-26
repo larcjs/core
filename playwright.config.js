@@ -78,9 +78,9 @@ export default defineConfig({
 
   // Web server for serving test files
   webServer: {
-    command: 'python3 -m http.server 8080 --directory .',
+    command: 'npx http-server . -p 8080 -s',
     url: 'http://localhost:8080',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
 });
