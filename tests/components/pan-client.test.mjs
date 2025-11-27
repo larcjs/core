@@ -4,25 +4,17 @@
  * request/reply, wildcards, and error handling
  */
 
-import { chromium } from 'playwright';
-import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
+import { test, expect } from '@playwright/test';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-describe('PAN Client Component', () => {
-  let browser, page;
+test.describe('PAN Client Component', () => {
+  let page;
 
-  beforeAll(async () => {
-    browser = await chromium.launch({ headless: true });
-    page = await browser.newPage();
+  test.beforeEach(async ({ page: p }) => {
+    page = p;
   });
 
-  afterAll(async () => {
-    if (browser) {
-      await browser.close();
-    }
-  });
-
-  describe('Constructor & Initialization', () => {
+  test.describe('Constructor & Initialization', () => {
     test('should create client with default host (document)', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -76,7 +68,7 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Ready State Management', () => {
+  test.describe('Ready State Management', () => {
     test('should resolve ready() promise when bus is ready', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -127,7 +119,7 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Message Publishing', () => {
+  test.describe('Message Publishing', () => {
     test('should publish basic message', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -203,7 +195,7 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Subscription with Wildcards', () => {
+  test.describe('Subscription with Wildcards', () => {
     test('should subscribe to exact topic', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -373,7 +365,7 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Request/Reply Pattern', () => {
+  test.describe('Request/Reply Pattern', () => {
     test('should send request and receive reply', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -467,7 +459,7 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Static matches() Method', () => {
+  test.describe('Static matches() Method', () => {
     test('should match exact topics', async () => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
@@ -539,12 +531,12 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Edge Cases', () => {
-    test('should handle subscription before bus ready', async () => {
+  test.describe('Edge Cases', () => {
+    test('should handle subscription before bus ready', async ({ context }) => {
       // Create a new page to test initialization order
-      const testPage = await browser.newPage();
+      const testPage = await context.newPage();
 
-      try {
+      try{
         await testPage.addInitScript(() => {
           window.messages = [];
         });
