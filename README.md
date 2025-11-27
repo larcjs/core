@@ -19,6 +19,7 @@ LARC Core provides the foundational messaging infrastructure for building loosel
 - 🎯 **Lightweight** — ~5KB minified, no dependencies (vs 400-750KB for typical React stack)
 - ⚡ **Performance** — 300k+ messages/second, zero memory leaks
 - 🔒 **Security** — Built-in message validation and sanitization
+- 🔀 **Dynamic Routing** — Runtime-configurable message routing with transforms and actions
 
 ## Why PAN Messaging?
 
@@ -213,6 +214,226 @@ await bus.request('products.item.save', {
   item: { id: 1, name: 'Widget', price: 9.99 }
 });
 ```
+
+## Dynamic Message Routing 🔥
+
+**NEW:** Configure message flows declaratively at runtime! PAN Routes lets you define routing rules that match, transform, and act on messages without hardcoding logic in your components.
+
+### Why Routing Changes Everything
+
+**Before (Tightly Coupled):**
+```javascript
+// Hardcoded message handling scattered across components ❌
+bus.subscribe('sensor.temperature', (msg) => {
+  if (msg.payload.value > 30) {
+    const alert = { type: 'alert.highTemp', temp: msg.payload.value };
+    bus.publish('alerts', alert);
+    console.warn(`High temp: ${alert.temp}°C`);
+  }
+});
+```
+
+**After (Declarative Routes):**
+```javascript
+// Define routing rules once, reuse everywhere ✅
+pan.routes.add({
+  name: 'High Temperature Alert',
+  match: {
+    type: 'sensor.temperature',
+    where: { op: 'gt', path: 'payload.value', value: 30 }
+  },
+  actions: [
+    { type: 'EMIT', message: { type: 'alert.highTemp' }, inherit: ['payload'] },
+    { type: 'LOG', level: 'warn', template: 'High temp: {{payload.value}}°C' }
+  ]
+});
+```
+
+### Enable Routing
+
+```html
+<pan-bus enable-routing="true"></pan-bus>
+```
+
+```javascript
+// Access routing manager
+const routes = window.pan.routes;
+```
+
+### Powerful Matching
+
+Match messages by type, topic, tags, or complex predicates:
+
+```javascript
+// Match high-value VIP orders
+routes.add({
+  name: 'VIP Order Priority',
+  match: {
+    type: 'order.created',
+    where: {
+      op: 'and',
+      children: [
+        { op: 'gte', path: 'payload.total', value: 1000 },
+        { op: 'eq', path: 'payload.customerTier', value: 'vip' }
+      ]
+    }
+  },
+  actions: [
+    {
+      type: 'EMIT',
+      message: {
+        type: 'notification.vip-order',
+        payload: { priority: 'high', channels: ['email', 'sms'] }
+      }
+    },
+    {
+      type: 'LOG',
+      level: 'info',
+      template: '💎 VIP Order: ${{payload.total}}'
+    }
+  ]
+});
+```
+
+### Transform Messages
+
+Pick fields, map values, or apply custom transformations:
+
+```javascript
+// Register custom transform
+routes.registerTransform('normalize-email', (email) => {
+  return email.toLowerCase().trim();
+});
+
+// Use in route
+routes.add({
+  name: 'User Email Normalizer',
+  match: { type: 'user.register' },
+  transform: {
+    op: 'map',
+    path: 'payload.email',
+    fnId: 'normalize-email'
+  },
+  actions: [
+    { type: 'EMIT', message: { type: 'user.normalized' }, inherit: ['payload'] }
+  ]
+});
+```
+
+### Multiple Actions
+
+Chain actions for complex workflows:
+
+```javascript
+routes.add({
+  name: 'Critical Error Pipeline',
+  match: {
+    type: 'error',
+    where: { op: 'eq', path: 'payload.severity', value: 'critical' }
+  },
+  actions: [
+    { type: 'LOG', level: 'error', template: '🚨 CRITICAL: {{payload.message}}' },
+    { type: 'EMIT', message: { type: 'alert.critical' }, inherit: ['payload'] },
+    { type: 'FORWARD', topic: 'error-tracking.events' },
+    { type: 'CALL', handlerId: 'send-slack-alert' }
+  ]
+});
+```
+
+### Runtime Configuration
+
+Add, update, or remove routes on the fly:
+
+```javascript
+// Add route
+const route = routes.add({ /* route config */ });
+
+// Update route
+routes.update(route.id, { enabled: false });
+
+// Remove route
+routes.remove(route.id);
+
+// List all routes
+console.table(routes.list());
+
+// Get stats
+console.log(routes.getStats());
+// {
+//   routesEvaluated: 1234,
+//   routesMatched: 456,
+//   actionsExecuted: 789
+// }
+```
+
+### Real-World Use Cases
+
+**🔍 Analytics Tracking**
+```javascript
+routes.add({
+  name: 'Track User Events',
+  match: { tagsAny: ['trackable'], type: ['user.click', 'user.view'] },
+  actions: [{ type: 'FORWARD', topic: 'analytics.events' }]
+});
+```
+
+**🔔 Smart Notifications**
+```javascript
+routes.add({
+  name: 'Notification Router',
+  match: { type: 'notification.send' },
+  actions: [
+    { type: 'CALL', handlerId: 'check-user-preferences' },
+    { type: 'EMIT', message: { type: 'notification.queued' } }
+  ]
+});
+```
+
+**🚦 Feature Flags**
+```javascript
+routes.registerHandler('feature-router', (msg) => {
+  const flags = getFeatureFlags();
+  const topic = flags.newUI ? 'ui.v2' : 'ui.v1';
+  window.pan.bus.publish(topic, msg.payload);
+});
+
+routes.add({
+  name: 'Feature Flag Router',
+  match: { type: 'app.init' },
+  actions: [{ type: 'CALL', handlerId: 'feature-router' }]
+});
+```
+
+**📊 Data Enrichment**
+```javascript
+routes.registerTransform('enrich-user', async (msg) => {
+  const userData = await fetchUserProfile(msg.payload.userId);
+  return {
+    ...msg,
+    payload: { ...msg.payload, user: userData }
+  };
+});
+
+routes.add({
+  name: 'Enrich Order Data',
+  match: { type: 'order.created' },
+  transform: { op: 'custom', fnId: 'enrich-user' },
+  actions: [{ type: 'EMIT', message: { type: 'order.enriched' }, inherit: ['payload'] }]
+});
+```
+
+### Why This Matters
+
+- **🎯 Separation of Concerns** - Routing logic separate from business logic
+- **🔄 Dynamic Reconfiguration** - Change message flows without code changes
+- **📦 Reusable Rules** - Share and persist routing configurations
+- **🐛 Debuggable** - See all routing rules in one place
+- **🧪 Testable** - Test routing rules in isolation
+- **⚡ Performant** - Sub-millisecond message evaluation
+
+### Learn More
+
+See [Dynamic Routing Documentation](docs/ROUTING.md) for complete API reference, predicates, transforms, actions, and advanced examples.
 
 ## Cross-Tab Communication
 

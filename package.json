@@ -28,6 +28,12 @@
     },
     "./components/pan-client.mjs": {
       "import": "./src/components/pan-client.mjs"
+    },
+    "./components/pan-routes": {
+      "import": "./src/components/pan-routes.mjs"
+    },
+    "./components/pan-routes.mjs": {
+      "import": "./src/components/pan-routes.mjs"
     }
   },
   "files": [
