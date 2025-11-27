@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **🔥 Dynamic Message Routing** - Runtime-configurable routing system for declarative event-driven architectures
+  - Match messages by type, topic, tags, source, or complex predicates (eq, neq, gt, lt, in, regex, and, or, not)
+  - Transform messages with pick, map, or custom transformation functions
+  - Execute actions: EMIT (publish new messages), FORWARD (reroute), LOG (with templates), CALL (custom handlers)
+  - Add, update, remove, enable/disable routes at runtime via API or control messages
+  - Route ordering, change listeners, error handlers, and performance statistics
+  - Comprehensive routing documentation (`docs/ROUTING.md`) with real-world examples
+- Routing test suite with 20 tests covering route management, message matching, actions, control messages, statistics, and integration
+- Export `pan-routes` component from package.json for direct import
+- Routing showcase in README with compelling use cases (analytics, notifications, feature flags, data enrichment)
+
+### Changed
+- Exposed `window.pan.routes` for easy access to routing manager
+- Updated README features list to include Dynamic Routing
+
 ## [1.1.0] - 2024-01-XX
 
 ### Added
