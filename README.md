@@ -63,7 +63,7 @@ npm install @larcjs/core
 <head>
   <meta charset="utf-8">
   <!-- Load the autoloader -->
-  <script type="module" src="https://unpkg.com/@larcjs/core/src/pan.js"></script>
+  <script type="module" src="https://unpkg.com/@larcjs/core@1.1.1/src/pan.js"></script>
 </head>
 <body>
   <!-- The pan-bus is automatically created -->
