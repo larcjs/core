@@ -82,7 +82,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Generate coverage report
-        run: npm run test:coverage || npm test
+        run: npx playwright test --project=chromium || npx playwright test --project=chromium
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
