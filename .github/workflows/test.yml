@@ -35,7 +35,14 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run tests on ${{ matrix.browser }}
-        run: npx playwright test --project=${{ matrix.browser }}
+        run: |
+          if [ "${{ matrix.browser }}" = "chromium" ]; then
+            # Chromium: run all tests (old tests use hardcoded chromium)
+            npx playwright test --project=${{ matrix.browser }}
+          else
+            # Firefox/WebKit: only run routing tests (use beforeEach with fixtures)
+            npx playwright test tests/components/pan-routes.test.mjs --project=${{ matrix.browser }}
+          fi
 
       - name: Upload test results
         if: failure()
