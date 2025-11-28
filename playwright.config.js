@@ -18,7 +18,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   // Limit workers in CI for stability
-  // Most tests use shared pages, but some use beforeEach with fresh pages
+  // Using Python http.server which handles load better than Node's http-server
   // In CI: Use 2 workers for balance of speed and stability
   // Locally: Use default (50% of CPU cores)
   workers: process.env.CI ? 2 : undefined,
@@ -59,8 +59,10 @@ export default defineConfig({
   ],
 
   // Run local dev server before starting the tests
+  // Using Python's http.server which handles concurrent connections better
+  // Serve from parent directory so tests can access /core/tests/...
   webServer: {
-    command: 'npx http-server . -p 8080 --silent',
+    command: 'cd .. && python3 -m http.server 8080',
     port: 8080,
     timeout: 120000,
     reuseExistingServer: !process.env.CI,

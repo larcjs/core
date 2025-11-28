@@ -4,27 +4,13 @@
  * memory management, security, and error handling
  */
 
-import { chromium } from 'playwright';
-import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
+import { test, expect } from '@playwright/test';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-describe('PAN Bus Component', () => {
-  let browser, page;
-
-  beforeAll(async () => {
-    browser = await chromium.launch({ headless: true });
-    page = await browser.newPage();
-  });
-
-  afterAll(async () => {
-    if (browser) {
-      await browser.close();
-    }
-  });
-
-  describe('Basic Functionality', () => {
-    describe('Component Registration and Lifecycle', () => {
-      test('should register pan-bus custom element', async () => {
+test.describe('PAN Bus Component', () => {
+  test.describe('Basic Functionality', () => {
+    test.describe('Component Registration and Lifecycle', () => {
+      test('should register pan-bus custom element', async ({ page, context }) => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
 
         // Wait for module to load
@@ -40,7 +26,7 @@ describe('PAN Bus Component', () => {
         expect(isDefined).toBe(true);
       });
 
-      test('should initialize with default configuration', async () => {
+      test('should initialize with default configuration', async ({ page, context }) => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
 
         // Wait for module to load and bus to be ready
@@ -60,9 +46,9 @@ describe('PAN Bus Component', () => {
         expect(config.debug).toBe(false);
       });
 
-      test('should emit pan:sys.ready event on connect', async () => {
+      test('should emit pan:sys.ready event on connect', async ({ page, context }) => {
         // Create a new page for this test to avoid conflicts
-        const testPage = await browser.newPage();
+        const testPage = await context.newPage();
 
         try {
           // Set up event listener before loading
@@ -86,8 +72,8 @@ describe('PAN Bus Component', () => {
       });
     });
 
-    describe('Configuration via Attributes', () => {
-      test('should configure max-retained via attribute', async () => {
+    test.describe('Configuration via Attributes', () => {
+      test('should configure max-retained via attribute', async ({ page, context }) => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
         await page.waitForFunction(() => window.__testReady === true);
 
@@ -105,7 +91,7 @@ describe('PAN Bus Component', () => {
         expect(maxRetained).toBe(500);
       });
 
-      test('should configure debug mode via attribute', async () => {
+      test('should configure debug mode via attribute', async ({ page, context }) => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
         await page.waitForFunction(() => window.__testReady === true);
 
@@ -125,8 +111,8 @@ describe('PAN Bus Component', () => {
     });
   });
 
-  describe('Message Publishing & Delivery', () => {
-    test('should publish and deliver basic message', async () => {
+  test.describe('Message Publishing & Delivery', () => {
+    test('should publish and deliver basic message', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
       await page.waitForFunction(() => window.__testReady === true);
       await page.waitForFunction(() => window.__panReady === true);
@@ -164,7 +150,7 @@ describe('PAN Bus Component', () => {
       expect(message.ts).toBeDefined();
     });
 
-    test('should validate message topic', async () => {
+    test('should validate message topic', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
       await page.waitForFunction(() => window.__testReady === true);
       await page.waitForFunction(() => window.__panReady === true);
@@ -192,7 +178,7 @@ describe('PAN Bus Component', () => {
       expect(error.message).toContain('Invalid topic');
     });
 
-    test('should support wildcard subscriptions', async () => {
+    test('should support wildcard subscriptions', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
       await page.waitForFunction(() => window.__testReady === true);
       await page.waitForFunction(() => window.__panReady === true);

@@ -4,26 +4,12 @@
  * request/reply, wildcards, and error handling
  */
 
-import { chromium } from 'playwright';
-import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
+import { test, expect } from '@playwright/test';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-describe('PAN Client Component', () => {
-  let browser, page;
-
-  beforeAll(async () => {
-    browser = await chromium.launch({ headless: true });
-    page = await browser.newPage();
-  });
-
-  afterAll(async () => {
-    if (browser) {
-      await browser.close();
-    }
-  });
-
-  describe('Constructor & Initialization', () => {
-    test('should create client with default host (document)', async () => {
+test.describe('PAN Client Component', () => {
+test.describe('Constructor & Initialization', () => {
+    test('should create client with default host (document)', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -43,7 +29,7 @@ describe('PAN Client Component', () => {
       expect(clientInfo.clientIdFormat).toBe(true);
     });
 
-    test('should create client with custom host element', async () => {
+    test('should create client with custom host element', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -60,7 +46,7 @@ describe('PAN Client Component', () => {
       expect(clientInfo.clientIdPrefix).toBe('pan-bus');
     });
 
-    test('should generate unique client IDs', async () => {
+    test('should generate unique client IDs', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -76,8 +62,8 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Ready State Management', () => {
-    test('should resolve ready() promise when bus is ready', async () => {
+  test.describe('Ready State Management', () => {
+    test('should resolve ready() promise when bus is ready', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -90,7 +76,7 @@ describe('PAN Client Component', () => {
       expect(readyResult.success).toBe(true);
     });
 
-    test('should flush pending operations after ready', async () => {
+    test('should flush pending operations after ready', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -127,8 +113,8 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Message Publishing', () => {
-    test('should publish basic message', async () => {
+  test.describe('Message Publishing', () => {
+    test('should publish basic message', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -168,7 +154,7 @@ describe('PAN Client Component', () => {
       expect(result.message).toBe('hello');
     });
 
-    test('should publish retained message', async () => {
+    test('should publish retained message', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -203,8 +189,8 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Subscription with Wildcards', () => {
-    test('should subscribe to exact topic', async () => {
+  test.describe('Subscription with Wildcards', () => {
+    test('should subscribe to exact topic', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -236,7 +222,7 @@ describe('PAN Client Component', () => {
       expect(result.topic).toBe('users.updated');
     });
 
-    test('should subscribe to wildcard pattern', async () => {
+    test('should subscribe to wildcard pattern', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -269,7 +255,7 @@ describe('PAN Client Component', () => {
       expect(result.topics).toEqual(['users.created', 'users.updated', 'users.deleted']);
     });
 
-    test('should subscribe to multiple topic patterns', async () => {
+    test('should subscribe to multiple topic patterns', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -302,7 +288,7 @@ describe('PAN Client Component', () => {
       expect(result.topics).toContain('posts.created');
     });
 
-    test('should unsubscribe with returned function', async () => {
+    test('should unsubscribe with returned function', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -336,7 +322,7 @@ describe('PAN Client Component', () => {
       expect(result.firstMessage).toBe(1);
     });
 
-    test('should auto-unsubscribe with AbortSignal', async () => {
+    test('should auto-unsubscribe with AbortSignal', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -373,8 +359,8 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Request/Reply Pattern', () => {
-    test('should send request and receive reply', async () => {
+  test.describe('Request/Reply Pattern', () => {
+    test('should send request and receive reply', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -405,7 +391,7 @@ describe('PAN Client Component', () => {
       expect(result.userName).toBe('Alice');
     });
 
-    test('should handle request timeout', async () => {
+    test('should handle request timeout', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -429,7 +415,7 @@ describe('PAN Client Component', () => {
       expect(result.message).toContain('timeout');
     });
 
-    test('should handle multiple simultaneous requests', async () => {
+    test('should handle multiple simultaneous requests', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -467,8 +453,8 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Static matches() Method', () => {
-    test('should match exact topics', async () => {
+  test.describe('Static matches() Method', () => {
+    test('should match exact topics', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -483,7 +469,7 @@ describe('PAN Client Component', () => {
       expect(result.notExact).toBe(false);
     });
 
-    test('should match global wildcard', async () => {
+    test('should match global wildcard', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -500,7 +486,7 @@ describe('PAN Client Component', () => {
       expect(result.nested).toBe(true);
     });
 
-    test('should match segment wildcards', async () => {
+    test('should match segment wildcards', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -519,7 +505,7 @@ describe('PAN Client Component', () => {
       expect(result.nested).toBe(false); // Wildcard only matches single segment
     });
 
-    test('should match multi-segment wildcards', async () => {
+    test('should match multi-segment wildcards', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -539,10 +525,10 @@ describe('PAN Client Component', () => {
     });
   });
 
-  describe('Edge Cases', () => {
-    test('should handle subscription before bus ready', async () => {
+  test.describe('Edge Cases', () => {
+    test('should handle subscription before bus ready', async ({ page, context }) => {
       // Create a new page to test initialization order
-      const testPage = await browser.newPage();
+      const testPage = await context.newPage();
 
       try {
         await testPage.addInitScript(() => {
@@ -582,7 +568,7 @@ describe('PAN Client Component', () => {
       }
     });
 
-    test('should handle publishing to non-existent topics', async () => {
+    test('should handle publishing to non-existent topics', async ({ page, context }) => {
       await page.goto(fileUrl('tests/fixtures/pan-client-test.html'));
       await page.waitForFunction(() => window.__testReady === true);
 
@@ -602,9 +588,9 @@ describe('PAN Client Component', () => {
       expect(result.success).toBe(true);
     });
 
-    test('should handle multiple clients independently', async () => {
+    test('should handle multiple clients independently', async ({ page, context }) => {
       // Use a fresh page to avoid subscription state from previous tests
-      const testPage = await browser.newPage();
+      const testPage = await context.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-client-test.html'));
