@@ -4,18 +4,26 @@
  * memory management, security, and error handling
  */
 
-import { test, expect } from '@playwright/test';
+import { chromium } from 'playwright';
+import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-test.describe('PAN Bus Component', () => {
-  let page;
+describe('PAN Bus Component', () => {
+  let browser, page;
 
-  test.beforeEach(async ({ page: p }) => {
-    page = p;
+  beforeAll(async () => {
+    browser = await chromium.launch({ headless: true });
+    page = await browser.newPage();
   });
 
-  test.describe('Basic Functionality', () => {
-    test.describe('Component Registration and Lifecycle', () => {
+  afterAll(async () => {
+    if (browser) {
+      await browser.close();
+    }
+  });
+
+  describe('Basic Functionality', () => {
+    describe('Component Registration and Lifecycle', () => {
       test('should register pan-bus custom element', async () => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
 
@@ -52,9 +60,9 @@ test.describe('PAN Bus Component', () => {
         expect(config.debug).toBe(false);
       });
 
-      test('should emit pan:sys.ready event on connect', async ({ context }) => {
+      test('should emit pan:sys.ready event on connect', async () => {
         // Create a new page for this test to avoid conflicts
-        const testPage = await context.newPage();
+        const testPage = await browser.newPage();
 
         try {
           // Set up event listener before loading
@@ -78,7 +86,7 @@ test.describe('PAN Bus Component', () => {
       });
     });
 
-    test.describe('Configuration via Attributes', () => {
+    describe('Configuration via Attributes', () => {
       test('should configure max-retained via attribute', async () => {
         await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
         await page.waitForFunction(() => window.__testReady === true);
@@ -117,7 +125,7 @@ test.describe('PAN Bus Component', () => {
     });
   });
 
-  test.describe('Message Publishing & Delivery', () => {
+  describe('Message Publishing & Delivery', () => {
     test('should publish and deliver basic message', async () => {
       await page.goto(fileUrl('tests/fixtures/basic-pan-bus.html'));
       await page.waitForFunction(() => window.__testReady === true);

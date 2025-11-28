@@ -4,19 +4,27 @@
  * progressive loading, dynamic content, and pan-bus integration
  */
 
-import { test, expect } from '@playwright/test';
+import { chromium } from 'playwright';
+import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-test.describe('PAN Autoloader', () => {
-  let page;
+describe('PAN Autoloader', () => {
+  let browser, page;
 
-  test.beforeEach(async ({ page: p }) => {
-    page = p;
+  beforeAll(async () => {
+    browser = await chromium.launch({ headless: true });
+    page = await browser.newPage();
   });
 
-  test.describe('Configuration', () => {
-    test('use default configuration', async ({ context }) => {
-      const testPage = await context.newPage();
+  afterAll(async () => {
+    if (browser) {
+      await browser.close();
+    }
+  });
+
+  describe('Configuration', () => {
+    test('should use default configuration', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -35,8 +43,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('merge custom configuration from window.panAutoload', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should merge custom configuration from window.panAutoload', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.addInitScript(() => {
@@ -62,8 +70,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('normalize extension with leading dot', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should normalize extension with leading dot', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.addInitScript(() => {
@@ -83,8 +91,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('resolve baseUrl with componentsPath', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should resolve baseUrl with componentsPath', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.addInitScript(() => {
@@ -109,9 +117,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Component Discovery', () => {
-    test('detect undefined custom elements', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Component Discovery', () => {
+    test('should detect undefined custom elements', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -169,8 +177,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('query :not(:defined) selector', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should query :not(:defined) selector', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -198,9 +206,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Module Loading', () => {
-    test('load component with maybeLoadFor', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Module Loading', () => {
+    test('should load component with maybeLoadFor', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -245,8 +253,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('skip already defined elements', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should skip already defined elements', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -274,8 +282,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('handle load failures gracefully', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle load failures gracefully', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -314,8 +322,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('prevent duplicate loads', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should prevent duplicate loads', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -365,9 +373,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Custom Paths', () => {
-    test('respect data-module attribute', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Custom Paths', () => {
+    test('should respect data-module attribute', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -401,9 +409,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Observer Functions', () => {
-    test('observe tree with observeTree', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Observer Functions', () => {
+    test('should observe tree with observeTree', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -433,8 +441,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('handle observeTree with document root', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle observeTree with document root', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -454,8 +462,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('prevent duplicate observation', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should prevent duplicate observation', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -482,9 +490,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Pan-Bus Integration', () => {
-    test('auto-create pan-bus element', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Pan-Bus Integration', () => {
+    test('should auto-create pan-bus element', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -511,8 +519,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('not duplicate pan-bus if already exists', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should not duplicate pan-bus if already exists', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -544,8 +552,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('load pan-bus component definition', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should load pan-bus component definition', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -571,9 +579,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Public API', () => {
-    test('expose panAutoload on window', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Public API', () => {
+    test('should expose panAutoload on window', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -598,8 +606,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('export module functions', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should export module functions', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -625,9 +633,9 @@ test.describe('PAN Autoloader', () => {
     });
   });
 
-  test.describe('Edge Cases', () => {
-    test('handle elements without document', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Edge Cases', () => {
+    test('should handle elements without document', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -650,8 +658,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('handle non-element nodes', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle non-element nodes', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));
@@ -678,8 +686,8 @@ test.describe('PAN Autoloader', () => {
       }
     });
 
-    test('handle elements without tag name', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle elements without tag name', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/pan-autoload-test.html'));

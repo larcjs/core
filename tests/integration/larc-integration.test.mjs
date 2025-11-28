@@ -4,19 +4,27 @@
  * Validates realistic usage patterns and component interactions
  */
 
-import { test, expect } from '@playwright/test';
+import { chromium } from 'playwright';
+import { describe, test, expect, beforeAll, afterAll } from '../lib/test-runner.mjs';
 import { fileUrl } from '../lib/test-utils.mjs';
 
-test.describe('LARC Integration Tests', () => {
-  let page;
+describe('LARC Integration Tests', () => {
+  let browser, page;
 
-  test.beforeEach(async ({ page: p }) => {
-    page = p;
+  beforeAll(async () => {
+    browser = await chromium.launch({ headless: true });
+    page = await browser.newPage();
   });
 
-  test.describe('Complete Initialization Flow', () => {
-    test('initialize autoloader, load pan-bus, and enable messaging', async ({ context }) => {
-      const testPage = await context.newPage();
+  afterAll(async () => {
+    if (browser) {
+      await browser.close();
+    }
+  });
+
+  describe('Complete Initialization Flow', () => {
+    test('should initialize autoloader, load pan-bus, and enable messaging', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -73,8 +81,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('handle initialization order independence', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle initialization order independence', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -110,9 +118,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('Component-to-Component Communication', () => {
-    test('enable multiple clients to communicate', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Component-to-Component Communication', () => {
+    test('should enable multiple clients to communicate', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -174,8 +182,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('support request/reply pattern between components', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should support request/reply pattern between components', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -219,9 +227,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('Dynamic Component Loading', () => {
-    test('load components on demand via autoloader', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Dynamic Component Loading', () => {
+    test('should load components on demand via autoloader', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -252,8 +260,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('observe dynamically added content', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should observe dynamically added content', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -282,9 +290,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('State Management Patterns', () => {
-    test('support retained state for late subscribers', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('State Management Patterns', () => {
+    test('should support retained state for late subscribers', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -330,8 +338,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('coordinate state across multiple components', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should coordinate state across multiple components', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -389,9 +397,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('Error Recovery and Resilience', () => {
-    test('handle client errors without affecting other clients', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Error Recovery and Resilience', () => {
+    test('should handle client errors without affecting other clients', async () => {
+      const testPage = await browser.newPage();
 
       try {
         // Suppress console errors for this test
@@ -445,8 +453,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('recover from bus being removed and recreated', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should recover from bus being removed and recreated', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -485,9 +493,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('Real-World Usage Patterns', () => {
-    test('support event sourcing pattern', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Real-World Usage Patterns', () => {
+    test('should support event sourcing pattern', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -540,8 +548,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('support pub-sub with topic namespaces', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should support pub-sub with topic namespaces', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -598,8 +606,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('support command/query separation', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should support command/query separation', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -661,9 +669,9 @@ test.describe('LARC Integration Tests', () => {
     });
   });
 
-  test.describe('Performance and Scalability', () => {
-    test('handle many subscribers efficiently', async ({ context }) => {
-      const testPage = await context.newPage();
+  describe('Performance and Scalability', () => {
+    test('should handle many subscribers efficiently', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));
@@ -721,8 +729,8 @@ test.describe('LARC Integration Tests', () => {
       }
     });
 
-    test('handle high message throughput', async ({ context }) => {
-      const testPage = await context.newPage();
+    test('should handle high message throughput', async () => {
+      const testPage = await browser.newPage();
 
       try {
         await testPage.goto(fileUrl('tests/fixtures/integration-test.html'));

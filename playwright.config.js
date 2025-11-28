@@ -17,10 +17,11 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Limit workers in CI to prevent overwhelming the http-server
-  // In CI: Use 1 worker to run tests serially
-  // Locally: Use 50% of CPU cores for faster execution
-  workers: process.env.CI ? 1 : undefined,
+  // Limit workers in CI for stability
+  // Most tests use shared pages, but some use beforeEach with fresh pages
+  // In CI: Use 2 workers for balance of speed and stability
+  // Locally: Use default (50% of CPU cores)
+  workers: process.env.CI ? 2 : undefined,
 
   // Reporter to use
   reporter: process.env.CI ? 'github' : 'list',
