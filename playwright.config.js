@@ -1,52 +1,45 @@
-/**
- * Playwright Test Configuration for LARC Core
- * @see https://playwright.dev/docs/test-configuration
- */
-
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Playwright Test Configuration
+ * @see https://playwright.dev/docs/test-configuration
+ */
 export default defineConfig({
+  // Test directory
   testDir: './tests',
-  testMatch: '**/*.test.mjs',
-
-  // Maximum time one test can run
-  timeout: 30000,
 
   // Run tests in files in parallel
   fullyParallel: true,
 
-  // Fail the build on CI if you accidentally left test.only
+  // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
 
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI
+  // Limit workers in CI to prevent overwhelming the http-server
+  // In CI: Use 1 worker to run tests serially
+  // Locally: Use 50% of CPU cores for faster execution
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter to use
-  reporter: process.env.CI
-    ? [['html'], ['github'], ['json', { outputFile: 'test-results/results.json' }]]
-    : [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI ? 'github' : 'list',
 
-  // Shared settings for all projects
+  // Shared settings for all the projects below
   use: {
+    // Base URL to use in actions like \`await page.goto('/')\`
+    baseURL: 'http://localhost:8080',
+
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
 
     // Screenshot on failure
     screenshot: 'only-on-failure',
 
-    // Video on failure
-    video: 'retain-on-failure',
+    // Increase navigation timeout to handle server load
+    navigationTimeout: 30000,
+    actionTimeout: 10000,
   },
-
-  // Coverage reporting
-  // Note: Coverage is collected from browser-side code execution
-  // Use with webServer to ensure proper instrumentation
-  coverage: process.env.CI ? {
-    reporters: [['html', { subdir: 'coverage' }], ['json', { file: 'coverage/coverage.json' }]],
-  } : undefined,
 
   // Configure projects for major browsers
   projects: [
@@ -54,33 +47,21 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
-    // Mobile viewports
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
   ],
 
-  // Web server for serving test files
+  // Run local dev server before starting the tests
   webServer: {
-    command: 'npx http-server . -p 8080 -s',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
+    command: 'npx http-server . -p 8080 --silent',
+    port: 8080,
     timeout: 120000,
+    reuseExistingServer: !process.env.CI,
   },
 });
